@@ -1,0 +1,90 @@
+Create table cleaned_2018 as 
+WITH t2 AS(
+SELECT "derived_msa-md",
+(CASE
+    WHEN derived_ethnicity = "Hispanic or Latino" THEN "Hispanic or Latino"
+    ELSE derived_race
+    END) AS final_race,
+(CASE 
+    WHEN "applicant_age" = "8888" THEN "NA"
+    ELSE "applicant_age"
+    END) AS "applicant_age",
+(CASE 
+    WHEN "purchaser_type" ="0" THEN "NA" 
+    WHEN "purchaser_type" ="1" THEN "Fannie Mae" 
+    WHEN "purchaser_type" ="2" THEN "Ginnie Mae"
+    WHEN "purchaser_type" ="3" THEN "Freddie Mac"  
+    WHEN "purchaser_type" ="4" THEN "Farmer Mac" 
+    WHEN "purchaser_type" ="5" THEN "Private Securitizer" 
+    WHEN "purchaser_type" ="6" THEN "Commercial Bank savings bank or savings association" 
+    WHEN "purchaser_type" ="71" THEN "Credit union mortgage company or finance company" 
+    WHEN "purchaser_type" ="72" THEN " Life insurance Company"
+    WHEN "purchaser_type" ="8" THEN "Affiliate Institution" 
+    Else "Other"
+    END) AS "purchaser_type",
+(CASE 
+    WHEN "aus-1" = "1" THEN "DU"
+    WHEN "aus-1" = "2" THEN "LP"
+    WHEN "aus-1" = "3" THEN "TOTAL scorecard"
+    WHEN "aus-1" = "4" THEN "GUS"
+    WHEN "aus-1" = "5" THEN "Other"
+    Else "NA"
+    END) as "aus",
+(CASE 
+    WHEN "debt_to_income_ratio" ="36" or "debt_to_income_ratio" ="37" or "debt_to_income_ratio" ="38" or "debt_to_income_ratio" ="39" or "debt_to_income_ratio" ="40" THEN "36%-<41%"
+    WHEN "debt_to_income_ratio" ="41" or "debt_to_income_ratio" ="42" or "debt_to_income_ratio" ="43" or "debt_to_income_ratio" ="44" or "debt_to_income_ratio" ="45"THEN "41%-<46%"
+    WHEN "debt_to_income_ratio" ="46" or "debt_to_income_ratio" ="47" or "debt_to_income_ratio" ="48" or "debt_to_income_ratio" ="49" THEN "46%-<50%"
+    ELSE "debt_to_income_ratio"
+    END) AS "debt_to_income_ratio",
+
+(CASE 
+    WHEN "total_loan_costs" ="NA" AND "total_points_and_fees" != "NA" THEN "total_points_and_fees"
+    WHEN "total_loan_costs" !="NA" AND "total_points_and_fees" == "NA" THEN "total_loan_costs"
+    WHEN "total_loan_costs" ="Exempt" THEN "Exempt" 
+    ELSE "NA"
+    END ) AS "Cost_of_Loan","derived_sex","loan_to_value_ratio","rate_spread","tract_minority_population_percent","ffiec_msa_md_median_family_income","lei",
+    "state_code","county_code","census_tract","loan_amount","hoepa_status","property_value","total_units","aus-1","tract_to_msa_income_percentage",
+       "tract_owner_occupied_units", "tract_one_to_four_family_homes","tract_median_age_of_housing_units","income","interest_rate","loan_term","intro_rate_period","interest_only_payment","balloon_payment",
+       "negative_amortization","other_nonamortizing_features","purchaser_type","prepayment_penalty_term","open-end_line_of_credit","discount_points","lender_credits","origination_charges"
+             
+FROM HMDA2018 
+WHERE "derived_msa-md" != "99999" AND "derived_msa-md" != "0"
+AND ("action_taken"="1")
+AND("loan_purpose" = "1")
+AND( loan_type = "1")
+AND ( income !="NA")
+AND("occupancy_type" = "1")
+AND("total_units" ="1" or "total_units" ="2" or "total_units" ="3" or "total_units" ="4")
+AND("debt_to_income_ratio" !="NA" and "debt_to_income_ratio" !="Exempt")
+AND("business_or_commercial_purpose"="2")
+AND("final_race"="White" or "final_race"="Hispanic or Latino" or "final_race" ="Asian"or "final_race"="Black or African American" or "final_race"="Race Not Available")
+AND("lien_status"="1")
+AND("reverse_mortgage"!="1") 
+AND("open-end_line_of_credit"="2")
+AND("lender_credits"!="NA") AND("lender_credits"!="Exempt")
+AND("discount_points"!="NA") AND("lender_credits"!="Exempt")
+AND("Cost_of_Loan"!="NA") AND("Cost_of_Loan"!="Exempt")
+AND("balloon_payment"!="1") AND("prepayment_penalty_term"="NA")AND("other_nonamortizing_features"!="1")
+AND("loan_term"!="NA") AND ("rate_spread"!="NA") AND ("interest_rate"!="NA")
+)
+
+
+SELECT t2."derived_msa-md",t2."final_race",t2."applicant_age",t2."debt_to_income_ratio",t2."Cost_of_Loan",t2."derived_sex",t2."loan_to_value_ratio",t2."rate_spread",t2."tract_minority_population_percent",t2."ffiec_msa_md_median_family_income",t2."lei",
+    t2."state_code",t2."county_code",t2."census_tract",t2."loan_amount",t2."hoepa_status",t2."property_value",t2."total_units",t2."aus",t2."tract_to_msa_income_percentage", t2."open-end_line_of_credit",
+       t2."tract_owner_occupied_units", t2."tract_one_to_four_family_homes",t2."tract_median_age_of_housing_units",t2."income",c."Asian%_tract",c."Black or African American%_tract",c."Hispanic or Latino (of any race)%_tract",c."White%_tract",
+       t2."interest_rate",t2."loan_term",t2."intro_rate_period",t2."interest_only_payment",t2."balloon_payment",t2."negative_amortization",t2."other_nonamortizing_features",t2."purchaser_type",t2."prepayment_penalty_term",
+       t2."discount_points",t2."lender_credits",t2."origination_charges"
+FROM Census_Tract as c
+    INNER JOIN t2
+    ON t2.census_tract = c.id
+    
+
+
+
+
+
+
+
+
+
+
